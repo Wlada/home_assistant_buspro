@@ -8,23 +8,23 @@ class SuccessOrFailure(Enum):
 
 class DeviceType(Enum):
     NotSet = b'\x00\x00'
-    SB_DN_6B0_10v = b'\x00\x11'   # Rele varme
-    SB_DN_SEC250K = b'\x0B\xE9'   # Sikkerhetsmodul
-    SB_CMS_12in1 = b'\x01\x34'    # 12i1
+    SB_DN_6B0_10v = b'\x00\x11'  # Rele varme
+    SB_DN_SEC250K = b'\x0B\xE9'  # Sikkerhetsmodul
+    SB_CMS_12in1 = b'\x01\x34'  # 12i1
     SB_DN_Logic960 = b'\x04\x53'  # Logikkmodul
-    SB_DLP2 = b'\x00\x86'         # DLP
-    SB_DLP = b'\x00\x95'          # DLP
-    SB_DLP_v2 = b'\x00\x9C'       # DLPv2
+    SB_DLP2 = b'\x00\x86'  # DLP
+    SB_DLP = b'\x00\x95'  # DLP
+    SB_DLP_v2 = b'\x00\x9C'  # DLPv2
     PyBusPro = b'\xFF\xFC'
     SmartHDLTest = b'\xFF\xFD'
     SetupTool = b'\xFF\xFE'
-    SB_WS8M = b'\x01\x2B'         # 8 keys panel
-    SB_CMS_8in1 = b'\x01\x35'     # 8i1
-    SB_DN_DT0601 = b'\x02\x60'    # 6ch Dimmer
-    HDL_MDT0601 = b'\x02\x6D'     # 6ch Dimmer ny type
-    SB_DN_R0816 = b'\x01\xAC'     # Rele
-    SB_DRY_4Z = b'\x00\x77'       # Dry contact
-    HDL_MSP07M = b'\x01\x50'      # Sensors in One
+    SB_WS8M = b'\x01\x2B'  # 8 keys panel
+    SB_CMS_8in1 = b'\x01\x35'  # 8i1
+    SB_DN_DT0601 = b'\x02\x60'  # 6ch Dimmer
+    HDL_MDT0601 = b'\x02\x6D'  # 6ch Dimmer ny type
+    SB_DN_R0816 = b'\x01\xAC'  # Rele
+    SB_DRY_4Z = b'\x00\x77'  # Dry contact
+    HDL_MSP07M = b'\x01\x50'  # Sensors in One
 
     # SB_DN_DT0601 = b'\x00\x9E'    # Universaldimmer 6ch 1A
     # SB_DN_RS232N				    # RS232
@@ -43,6 +43,12 @@ class SwitchStatusOnOff(Enum):
 class OnOffStatus(Enum):
     OFF = 0
     ON = 1
+
+
+class CoverStatus(Enum):
+    STOP = 0
+    OPEN = 1
+    CLOSE = 2
 
 
 class TemperatureType(Enum):
@@ -74,7 +80,14 @@ class OperateCode(Enum):
     ReadStatusOfUniversalSwitchResponse = b'\xE0\x19'
     BroadcastStatusOfUniversalSwitch = b'\xE0\x17'
 
+    CurtainSwitchControl = b'\xE3\xE0'
+    CurtainSwitchControlResponse = b'\xE3\xE1'
+    CurtainSwitchStatus = b'\xE3\xE2'
+    CurtainSwitchStatusResponse = b'\xE3\xE3'
+
     BroadcastSensorStatusResponse = b'\x16\x44'
+    ReadMotionSensorStatus = b'\xDB\x00'
+    ReadMotionSensorStatusResponse = b'\xDB\x01'
     ReadSensorStatus = b'\x16\x45'
     ReadSensorStatusResponse = b'\x16\x46'
     BroadcastSensorStatusAutoResponse = b'\x16\x47'
@@ -91,6 +104,11 @@ class OperateCode(Enum):
 
     ReadSensorsInOneStatus = b'\x16\x04'
     ReadSensorsInOneStatusResponse = b'\x16\x05'
+
+    ControlPanelAC = b'\xE3\xD8'
+    ControlPanelACResponse = b'\xE3\xD9'
+    ReadPanelAC = b'\xE3\xDA'
+    ReadPanelACResponse = b'\xE3\xDB'
 
     """
     # 
@@ -149,7 +167,7 @@ class OperateCode(Enum):
     public enum OperationCode
     {
     NotSet = 0x0,
-    
+
     SingleChannelControl = 0x0031,
     SingleChannelControlResponse = 0x0032,
     ReadStatusOfChannels = 0x0033,
@@ -256,7 +274,7 @@ class OperateCode(Enum):
     WriteRemarkOfSpecifiedSceneOfSpecifiedZoneResponse = 0xF027,
     WriteTypeOfZoneWhenPowerOn = 0xF053,
     WriteTypeOfZoneWhenPowerOnResponse = 0xF054,
-    
+
     ReadTemperatureOutside = 0x018C,
     ReadTemperatureOutsideResponse = 0x018D,
     ModifyTemperatureOutside = 0x018E,
@@ -292,35 +310,35 @@ class OperateCode(Enum):
     UniversalSwitchControl = 0xE01C,
     UniversalSwitchControlResponse = 0xE01D,
     BroadcastSystemDateTime = 0xDA44,
-    
+
     ReadAcCurrentStatus = 0xE0EC,
     ReadAcCurrentStatusResponse = 0xE0ED,
-    
+
     ReadFloorHeatingStatus = 0x1944,
     ReadFloorHeatingStatusResponse = 0x1945,
-    
+
     ReadStatusPir = 0x1645,
     ReadStatusPirResponse = 0x1646,
-    
+
     BroadcastTemperature = 0xE3E5,
-    
+
     ReadTemperature = 0xE3E7,
     ReadTemperatureResponse = 0xE3E8,
-    
+
     BroadcastSensorsStatus = 0x1647,
-    
+
     ReadFloorHeatingSettings = 0x1940,
     ReadFloorHeatingSettingsResponse = 0x1941,
-    
+
     ControlFloorHeatingStatus = 0x1946,
     ControlFloorHeatingStatusResponse = 0x1947,
-    
+
     BroadcastStatusOfSequence = 0xF036,
-    
-    
-    
-    
-    
+
+
+
+
+
     XX_QUERY_DLP_FROM_SETUP_TOOL_1 = 0xE0E4,
     XX_RESPONSE_QUERY_DLP_FROM_SETUP_TOOL_1 = 0xE0E5,
     XX_QUERY_12in1_FROM_SETUP_TOOL_3 = 0xDB3E,
@@ -339,8 +357,8 @@ class OperateCode(Enum):
 
     '''
 
-    
-    
+
+
     public class Channel
     {
     public enum State
@@ -348,15 +366,15 @@ class OperateCode(Enum):
     Off = 0,
     On = 100
     }
-    
+
     public enum Status
     {
     Off = 0,
     On = 1
     }
     }
-    
-    
+
+
     public class Temperature
     {
     public enum Type
@@ -364,13 +382,13 @@ class OperateCode(Enum):
     Celsius = 0,
     Fahrenheit = 1
     }
-    
+
     public enum Status
     {
     Off = 0,
     On = 1
     }
-    
+
     public enum Mode
     {
     Normal = 1,
@@ -379,21 +397,21 @@ class OperateCode(Enum):
     Away = 4,
     Timer = 5
     }
-    
+
     public enum Timer
     {
     Day = 0,
     Night = 1
     }
     }
-    
+
     '''
 
     '''
     public enum DeviceType
     {
     UnknownDevice = 0x0,
-    
+
     RELAY_6B0_10v = 0x0011,			// Rele varme
     SECURITY_SEC250K = 0x0BE9,	// Sikkerhetsmodul
     PIR_12in1 = 0x0134,					// 12i1
@@ -406,11 +424,11 @@ class OperateCode(Enum):
     DIMMER_DT0601 = 0x0260,			// 6ch Dimmer
     RELAY_R0816 = 0x01AC,				// Rele
     DRY_4Z = 0x0077,						// Input
-    
+
     BusproService = 0xFFFC,
     SmartHDLTest = 0xFFFD,
     SetupTool = 0xFFFE,
-    
+
     //SB_DN_DT0601 = 0x009E,	// Universaldimmer 6ch 1A
     //SB_DN_RS232N						// RS232
     //DIMMER_MDT0601 = 0x0260,
@@ -424,7 +442,7 @@ class OperateCode(Enum):
     //	public enum Action
     //	{
     //		NotSet = 0x0,
-    
+
     //		SingleChannelControl = 0x0031
     //	}
     '''

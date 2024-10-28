@@ -10,15 +10,18 @@ import logging
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.light import (
-    LightEntity, 
-    ColorMode, 
-    PLATFORM_SCHEMA, 
+    LightEntity,
+    ColorMode,
+    PLATFORM_SCHEMA,
     ATTR_BRIGHTNESS
 )
 from homeassistant.const import (CONF_NAME, CONF_DEVICES)
 from homeassistant.core import callback
 
 from ..buspro import DATA_BUSPRO
+from datetime import timedelta
+import homeassistant.helpers.event as event
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,6 +70,8 @@ async def async_setup_platform(hass, config, async_add_entites, discovery_info=N
         devices.append(BusproLight(hass, light, device_running_time, dimmable))
 
     async_add_entites(devices)
+    for device in devices:
+        await device.async_read_status()
 
 
 # noinspection PyAbstractClass
@@ -78,9 +83,17 @@ class BusproLight(LightEntity):
         self._device = device
         self._running_time = running_time
         self._dimmable = dimmable
-        self._attr_color_mode = ColorMode.BRIGHTNESS
-        self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
+        if self._dimmable:
+            self._attr_color_mode = ColorMode.BRIGHTNESS
+            self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
+        else:
+            self._attr_color_mode = ColorMode.ONOFF
+            self._attr_supported_color_modes = {ColorMode.ONOFF}
         self.async_register_callbacks()
+         # Set the polling interval (e.g., every 30 seconds)
+        self._polling_interval = timedelta(minutes=60)
+        event.async_track_time_interval(hass, self.async_update, self._polling_interval)
+
 
     @callback
     def async_register_callbacks(self):
@@ -96,7 +109,15 @@ class BusproLight(LightEntity):
     @property
     def should_poll(self):
         """No polling needed within Buspro."""
-        return False
+        return True
+
+    async def async_update(self, *args):
+        """Fetch new state data for this light."""
+        await self.async_read_status()
+
+    #async def async_update(self):
+     #   """Fetch new state data for this light."""
+      #  await self.async_read_status()
 
     @property
     def name(self):
@@ -136,3 +157,8 @@ class BusproLight(LightEntity):
     def unique_id(self):
         """Return the unique id."""
         return self._device.device_identifier
+
+    async def async_read_status(self):
+        """Read the status of the device."""
+        await self._device.read_status()
+        self.async_write_ha_state()

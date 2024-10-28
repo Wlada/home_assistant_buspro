@@ -51,7 +51,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
                 vol.Required(CONF_TYPE): vol.In(SENSOR_TYPES),
                 vol.Optional(CONF_UNIT_OF_MEASUREMENT, default=DEFAULT_CONF_UNIT_OF_MEASUREMENT): cv.string,
                 vol.Optional(CONF_DEVICE_CLASS, default=DEFAULT_CONF_DEVICE_CLASS): cv.string,
-                vol.Optional(CONF_DEVICE, default=None): cv.string,
+                #vol.Optional(CONF_DEVICE, default=None): cv.string,
+                vol.Optional(CONF_DEVICE, default=""): cv.string,
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_CONF_SCAN_INTERVAL): cv.string,
                 vol.Optional(CONF_OFFSET, default=DEFAULT_CONF_OFFSET): cv.string,
             })
@@ -74,12 +75,12 @@ async def async_setup_platform(hass, config, async_add_entites, discovery_info=N
         sensor_type = device_config[CONF_TYPE]
         device = device_config[CONF_DEVICE]
         offset = device_config[CONF_OFFSET]
-        
+
         scan_interval = device_config[CONF_SCAN_INTERVAL]
         interval = 0
         if scan_interval is not None:
             interval = int(scan_interval)
-            
+
         address2 = address.split('.')
         device_address = (int(address2[0]), int(address2[1]))
 
@@ -91,6 +92,8 @@ async def async_setup_platform(hass, config, async_add_entites, discovery_info=N
         devices.append(BusproSensor(hass, sensor, sensor_type, interval, offset))
 
     async_add_entites(devices)
+    for device in devices:
+        await device.async_read_status()
 
 
 # noinspection PyAbstractClass
@@ -129,7 +132,7 @@ class BusproSensor(Entity):
         """No polling needed within Buspro unless explicitly set."""
         return self._should_poll
 
-    async def async_update(self):
+    async def async_update(self, *args):
         await self._device.read_sensor_status()
 
     @property
@@ -197,3 +200,8 @@ class BusproSensor(Entity):
     def unique_id(self):
         """Return the unique id."""
         return f"{self._device.device_identifier}-{self._sensor_type}"
+
+    async def async_read_status(self):
+        """Read the status of the device."""
+        await self._device.read_sensor_status()
+        self.async_write_ha_state()
