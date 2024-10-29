@@ -87,7 +87,13 @@ async def async_setup_platform(hass, config, async_add_entites, discovery_info=N
         preset_modes = device_config[CONF_PRESET_MODES]
 
         address2 = address.split('.')
-        device_address = (int(address2[0]), int(address2[1]))
+        if len(address2) == 3:
+            device_address = (int(address2[0]), int(address2[1]), int(address2[2]))
+        elif len(address2) == 2:
+            device_address = (int(address2[0]), int(address2[1]))
+        else:
+            _LOGGER.error(f"Invalid address format: {address}")
+            continue
 
         _LOGGER.debug("Adding climate '{}' with address {}".format(name, device_address))
 
@@ -98,8 +104,11 @@ async def async_setup_platform(hass, config, async_add_entites, discovery_info=N
         if relay_address:
             relay_address2 = relay_address.split('.')
             relay_device_address = (int(relay_address2[0]), int(relay_address2[1]))
-            relay_channel_number = int(relay_address2[2])
-            relay_sensor = Sensor(hdl, relay_device_address, channel_number=relay_channel_number)
+            if len(relay_address2) == 3:
+                relay_channel_number = int(relay_address2[2])
+                relay_sensor = Sensor(hdl, relay_device_address, channel_number=relay_channel_number)
+            elif len(relay_address2) == 2:
+                relay_sensor = Sensor(hdl, relay_device_address)
 
         devices.append(BusproClimate(hass, climate, preset_modes, relay_sensor))
 

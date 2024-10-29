@@ -1,10 +1,12 @@
 import asyncio
+import logging
 
 from .control import _ReadFloorHeatingStatus, _ControlFloorHeatingStatus
 from .device import Device
 from ..helpers.enums import *
 from ..helpers.generics import Generics
 
+_LOGGER = logging.getLogger(__name__)
 
 class ControlFloorHeatingStatus:
     def __init__(self):
@@ -127,17 +129,33 @@ class Climate(Device):
     async def control_heating_status(self, floor_heating_status: ControlFloorHeatingStatus):
         self.register_telegram_received_cb(self._telegram_received_control_heating_status_cb, floor_heating_status)
         rfhs = _ReadFloorHeatingStatus(self._buspro)
-        rfhs.subnet_id, rfhs.device_id = self._device_address
+
+        if len(self._device_address) == 3:
+            rfhs.subnet_id, rfhs.device_id, rfhs.channel_id = self._device_address
+        elif len(self._device_address) == 2:
+            rfhs.subnet_id, rfhs.device_id = self._device_address
+        else:
+            _LOGGER.error(f"Invalid device address: {self._device_address}")
+            return  # Exit the method if the address is invalid
+
         await rfhs.send()
 
     def _call_read_current_heating_status(self, run_from_init=False):
+        _LOGGER.debug(f"_call_read_current_heating_status: {self._device_address}")
 
         async def read_current_heating_status():
             if run_from_init:
                 await asyncio.sleep(5)
 
             rfhs = _ReadFloorHeatingStatus(self._buspro)
-            rfhs.subnet_id, rfhs.device_id = self._device_address
+
+            if len(self._device_address) == 3:
+                rfhs.subnet_id, rfhs.device_id, rfhs.channel_id = self._device_address
+            elif len(self._device_address) == 2:
+                rfhs.subnet_id, rfhs.device_id = self._device_address
+            else:
+                _LOGGER.error(f"Invalid address read_current_heating_status: {self._device_address}")
+
             await rfhs.send()
 
         asyncio.ensure_future(read_current_heating_status(), loop=self._buspro.loop)
