@@ -1,4 +1,5 @@
 ﻿import asyncio
+import logging
 
 from .control import _ReadStatusOfChannels
 
@@ -35,6 +36,7 @@ class Device(object):
             await device_updated_cb(self)
 
     async def _send_telegram(self, telegram):
+        # self._buspro.telegram_logger.debug('send_telegram:', telegram)
         await self._buspro.network_interface.send_telegram(telegram)
 
     # async def _send_control(self, control):

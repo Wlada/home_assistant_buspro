@@ -18,6 +18,7 @@ class ControlFloorHeatingStatus:
         self.night_temperature = None
         self.away_temperature = None
 
+        _LOGGER.debug("Climate init -> normal_temperature {}, status '{}'".format(self.normal_temperature, self.status))
 
 class Climate(Device):
     def __init__(self, buspro, device_address, name=""):
@@ -38,8 +39,11 @@ class Climate(Device):
         self.register_telegram_received_cb(self._telegram_received_cb)
         self._call_read_current_heating_status(run_from_init=True)
 
+
+
     def _telegram_received_cb(self, telegram):
         if telegram.operate_code == OperateCode.ReadFloorHeatingStatusResponse:
+
             self._temperature_type = telegram.payload[0]
             self._current_temperature = telegram.payload[1]
             self._status = telegram.payload[2]
@@ -69,9 +73,12 @@ class Climate(Device):
             self._current_temperature = telegram.payload[1]
             self._call_device_updated()
 
+        _LOGGER.debug("Climate received -> telegram {}".format(telegram))
+        _LOGGER.debug("Climate received -> _current_temperature {}, _status '{}'".format(self._current_temperature, self._status))
+
     async def read_heating_status(self):
         rfhs = _ReadFloorHeatingStatus(self._buspro)
-        rfhs.subnet_id, rfhs.device_id = self._device_address
+        rfhs.subnet_id, rfhs.device_id, rfhs.channel_number = self._device_address
         await rfhs.send()
 
     def _telegram_received_control_heating_status_cb(self, telegram, floor_heating_status):
@@ -112,7 +119,14 @@ class Climate(Device):
                     away_temperature = floor_heating_status.away_temperature
 
             cfhs_ = _ControlFloorHeatingStatus(self._buspro)
-            cfhs_.subnet_id, cfhs_.device_id = self._device_address
+            if len(self._device_address) == 3:
+                cfhs_.subnet_id, cfhs_.device_id, cfhs_.channel_id = self._device_address
+            elif len(self._device_address) == 2:
+                cfhs_.subnet_id, cfhs_.device_id, cfhs_.channel_id = self._device_address
+            else:
+                _LOGGER.error(f"Invalid device address: {self._device_address}")
+                return  # Exit the method if the address is invalid
+
             cfhs_.temperature_type = temperature_type
             cfhs_.status = status
             cfhs_.mode = mode
@@ -120,6 +134,8 @@ class Climate(Device):
             cfhs_.day_temperature = day_temperature
             cfhs_.night_temperature = night_temperature
             cfhs_.away_temperature = away_temperature
+            _LOGGER.debug("Climate  cfhs  -> _current_temperature {}, _status '{}'".format(cfhs_.normal_temperature,
+                                                                                             cfhs_.status))
 
             async def send_control_floor_heating_status(cfhs__):
                 await cfhs__.send()
@@ -137,6 +153,8 @@ class Climate(Device):
         else:
             _LOGGER.error(f"Invalid device address: {self._device_address}")
             return  # Exit the method if the address is invalid
+
+        _LOGGER.debug("Climate rfhs -> _device_address {}".format(self._device_address))
 
         await rfhs.send()
 

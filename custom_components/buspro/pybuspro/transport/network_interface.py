@@ -41,6 +41,6 @@ class NetworkInterface:
         message = self._th.build_send_buffer(telegram)
 
         gateway_address_send, _ = self.gateway_address_send_receive
-        self.buspro.logger.debug(self._th.build_telegram_from_udp_data(message, gateway_address_send))
+        # self.buspro.logger.debug(self._th.build_telegram_from_udp_data(message, gateway_address_send))
 
         await self.udp_client.send_message(message)

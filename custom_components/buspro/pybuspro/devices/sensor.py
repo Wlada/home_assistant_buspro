@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from .control import (
     _ReadSensorStatus,
@@ -12,6 +13,7 @@ from .control import (
 from .device import Device
 from ..helpers.enums import *
 
+_LOGGER = logging.getLogger(__name__)
 
 class Sensor(Device):
     def __init__(
@@ -50,6 +52,8 @@ class Sensor(Device):
 
     def _telegram_received_cb(self, telegram):
         """Handle incoming telegrams."""
+        _LOGGER.debug("Received sensors_in_one telegram: %s", telegram.payload)
+        _LOGGER.debug("Sensor %s updated: Device is %s", self.device_identifier, self._device)
         if telegram.operate_code == OperateCode.ReadSensorStatusResponse:
             success_or_fail = telegram.payload[0]
             self._current_temperature = telegram.payload[1]
@@ -68,10 +72,11 @@ class Sensor(Device):
             self._call_device_updated()
 
         elif telegram.operate_code == OperateCode.ReadSensorsInOneStatusResponse:
+            # For analog temperature sensors, always use index 1
             self._current_temperature = telegram.payload[1]
-            self._motion_sensor = telegram.payload[7]
-            self._dry_contact_1_status = telegram.payload[8]
-            self._dry_contact_2_status = telegram.payload[9]
+            self._motion_sensor = telegram.payload[7] if len(telegram.payload) > 7 else None
+            self._dry_contact_1_status = telegram.payload[8] if len(telegram.payload) > 8 else None
+            self._dry_contact_2_status = telegram.payload[9] if len(telegram.payload) > 9 else None
             self._call_device_updated()
 
         elif telegram.operate_code == OperateCode.BroadcastSensorStatusResponse:
@@ -147,6 +152,12 @@ class Sensor(Device):
 
     async def read_sensor_status(self):
         """Read the status of the sensor."""
+        _LOGGER.debug(
+            "Sensor %s: Temperature updated to %s, device: %s",
+            self.device_identifier,
+            self._current_temperature,
+            self._device
+        )
         if self._universal_switch_number is not None:
             rsous = _ReadStatusOfUniversalSwitch(self._buspro)
             rsous.subnet_id, rsous.device_id = self._device_address

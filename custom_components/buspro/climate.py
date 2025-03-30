@@ -21,7 +21,7 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_DEVICES,
     CONF_ADDRESS,
-    TEMP_CELSIUS,
+    UnitOfTemperature,
     ATTR_TEMPERATURE,
 )
 from homeassistant.core import callback
@@ -135,6 +135,12 @@ class BusproClimate(ClimateEntity):
         self._enable_turn_on_off_backwards_compatibility = False
         self._attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
 
+        _LOGGER.debug("Climate class init device '{}' with relay_sensor {} and tearget temp {}")
+        # _LOGGER.debug(device.device_address)
+        # _LOGGER.debug(relay_sensor.device_address)
+        _LOGGER.debug(self._target_temperature)
+
+
         self.async_register_callbacks()
 
     async def async_turn_off(self) -> None:
@@ -191,7 +197,7 @@ class BusproClimate(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def current_temperature(self):

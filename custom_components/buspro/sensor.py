@@ -28,6 +28,7 @@ from homeassistant.helpers.entity import Entity
 
 from ..buspro import DATA_BUSPRO
 
+
 DEFAULT_CONF_UNIT_OF_MEASUREMENT = ""
 DEFAULT_CONF_DEVICE_CLASS = "None"
 DEFAULT_CONF_SCAN_INTERVAL = 0
@@ -119,6 +120,8 @@ class BusproSensor(Entity):
         """Call after device was updated."""
         self._temperature = self._device.temperature
         self._brightness = self._device.brightness
+        _LOGGER.debug("Entity %s received update: Temperature = %s", self.name, self._temperature)
+
         self.async_write_ha_state()
 
     @property
